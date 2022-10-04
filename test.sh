@@ -18,5 +18,6 @@ assert() {
 
 assert 0 0
 assert 42 42
+assert 5 '1000-992-3'
 
 echo OK
