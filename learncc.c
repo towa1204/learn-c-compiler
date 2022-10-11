@@ -5,11 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* 
-  strtol 
-    数値を読み込んだ後、第2引数のポインタをアップデートして、
-    読み込んだ最後の文字の次の文字を指すように値を更新
-*/
+//
+// トークナイザ
+//
 
 // トークンの種類
 typedef enum {
@@ -18,33 +16,13 @@ typedef enum {
   TK_EOF,      // 入力の終わりを表すトークン
 } TokenKind;
 
-typedef struct Token Token;
-
 // トークン型(単方向リスト)
+typedef struct Token Token;
 struct Token {
   TokenKind kind; // トークンの型
   Token *next;    // 次の入力トークン
   int val;        // kindがTK_NUMのとき、その数値
   char *str;      // トークン文字列
-};
-
-// 抽象構文木のノードの種類
-typedef enum {
-  ND_ADD, // +
-  ND_SUB, // -
-  ND_MUL, // *
-  ND_DIV, // /
-  ND_NUM, // 整数
-} NodeKind;
-
-typedef struct Node Node;
-
-// 抽象構文木のノードの型
-struct Node {
-  NodeKind kind; // ノードの型
-  Node *lhs; // 左辺(left-hand side)
-  Node *rhs; // 右辺(right-hand side)
-  int val; // kindがND_NUMの場合のみ使う
 };
 
 // 入力プログラム
@@ -149,6 +127,28 @@ Token *tokenize() {
   return head.next;
 }
 
+//
+// パーサ
+//
+
+// 抽象構文木のノードの種類
+typedef enum {
+  ND_ADD, // +
+  ND_SUB, // -
+  ND_MUL, // *
+  ND_DIV, // /
+  ND_NUM, // 整数
+} NodeKind;
+
+// 抽象構文木のノードの型
+typedef struct Node Node;
+struct Node {
+  NodeKind kind; // ノードの型
+  Node *lhs; // 左辺(left-hand side)
+  Node *rhs; // 右辺(right-hand side)
+  int val; // kindがND_NUMの場合のみ使う
+};
+
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
   Node *node = calloc(1, sizeof(Node));
   node->kind = kind;
@@ -164,6 +164,7 @@ Node *new_node_num(int val) {
   return node;
 }
 
+// プロトタイプ宣言
 Node *expr();
 Node *mul();
 Node *primary();
@@ -208,6 +209,10 @@ Node *primary() {
   // そうでなければ数値のはず
   return new_node_num(expect_number());
 }
+
+//
+// コード生成
+//
 
 void gen(Node *node) {
   if (node->kind == ND_NUM) {
